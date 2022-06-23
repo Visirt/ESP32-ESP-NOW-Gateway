@@ -1,10 +1,10 @@
+#include <constants_global.h>
 #include <esp_task_wdt.h>
 #include <espwifi.h>
 #include <espnow.h>
 #include <mqtt.h>
 
 
-// #define DEBUG
 
 void setup() {
   #ifdef DEBUG

@@ -11,12 +11,13 @@ void setupMqtt()
     mqttClient.setWill("esp32Mesh/LWT", 2, false, "ESP32 Connection Dropped");
     // mqttClient.onMessage(mqttCallback);
     mqttClient.setServer(IP_RASPBERRY, 1883);
+    mqttClient.connect();
 
     while(!mqttClient.connected())
     {
         delay(2000);
         #ifdef DEBUG
-            Serial.println('-')
+            Serial.print('-');
         #endif
     }
 

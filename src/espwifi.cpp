@@ -14,4 +14,7 @@ void setupWiFi()
       Serial.print(".");
     #endif
   }
+  #ifdef DEBUG
+    Serial.println("\n" + WiFi.macAddress() + " " + WiFi.localIP().toString());
+  #endif
 }
