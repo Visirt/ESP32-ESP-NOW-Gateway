@@ -9,7 +9,7 @@ void setupMqtt()
     mqttClient.onConnect(onMqttConnect);
     mqttClient.setKeepAlive(30);
     mqttClient.setWill("esp32Mesh/LWT", 2, false, "ESP32 Connection Dropped");
-    // mqttClient.onMessage(mqttCallback);
+    mqttClient.onMessage(mqttCallback);
     mqttClient.setServer(IP_RASPBERRY, 1883);
     mqttClient.connect();
 
@@ -21,14 +21,35 @@ void setupMqtt()
         #endif
     }
 
-    xTimerCreate("heartbeatTimer", pdMS_TO_TICKS(5 * 60 * 1000), pdTRUE, (void*) 0, heartbeatTimer);
+    TimerHandle_t timer = xTimerCreate("heartbeatTimer", pdMS_TO_TICKS(5 * 60 * 1000), pdTRUE, (void*) 0, heartbeatTimer);
+    xTimerStart(timer, portMAX_DELAY);
 }
 
 void onMqttConnect(bool sessionPresent)
 {
-  // mqttClient.subscribe("esp32Mesh/to/#", 2);
+  mqttClient.subscribe("esp32Mesh/to/#", 2);
   mqttClient.publish("esp32Mesh/status", 2, false, "Connected!");
   heartbeatTimer(NULL);
+}
+
+void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
+{
+  char *cleanPayload = (char *)malloc(len + 1);
+  memcpy(cleanPayload, payload, len);
+  cleanPayload[len] = '\0';
+  String msg = String(cleanPayload);
+  free(cleanPayload);
+
+  String targetStr = String(topic).substring(13);
+  if (targetStr == "gateway")
+  {
+    if(msg == "getMAC")
+      mqttClient.publish("esp32Mesh/MACAddress", 2, false, WiFi.macAddress().c_str());
+  }
+  else
+  {
+
+  }
 }
 
 void heartbeatTimer(TimerHandle_t handle)

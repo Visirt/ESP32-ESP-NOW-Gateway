@@ -10,6 +10,12 @@ void setupEspNow()
     ESP.restart();
     return;
   }
+  else
+  {
+    #ifdef DEBUG
+      Serial.println("ESP-NOW Initialized");
+    #endif
+  }
   esp_now_register_send_cb(onSent);
   esp_now_register_recv_cb(onRecv);
 }
