@@ -1,8 +1,8 @@
 #include <mqtt.h>
 
-AsyncMqttClient mqttClient;
+AsyncMqttClient MQTT::mqttClient;
 
-void setupMqtt()
+void MQTT::setupMqtt()
 {
     mqttClient.setClientId(MQTT_NAME);
     mqttClient.setCredentials(MQTT_USER, MQTT_PASSWD);
@@ -25,14 +25,14 @@ void setupMqtt()
     xTimerStart(timer, portMAX_DELAY);
 }
 
-void onMqttConnect(bool sessionPresent)
+void MQTT::onMqttConnect(bool sessionPresent)
 {
   mqttClient.subscribe("esp32Mesh/to/#", 2);
   mqttClient.publish("esp32Mesh/status", 2, false, "Connected!");
   heartbeatTimer(NULL);
 }
 
-void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
+void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
   char *cleanPayload = (char *)malloc(len + 1);
   memcpy(cleanPayload, payload, len);
@@ -45,6 +45,8 @@ void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties p
   {
     if(msg == "getMAC")
       mqttClient.publish("esp32Mesh/MACAddress", 2, false, WiFi.macAddress().c_str());
+    else if(msg == "getIP")
+      mqttClient.publish("esp32Mesh/IPAddress", 2, false, WiFi.localIP().toString().c_str());
   }
   else
   {
@@ -52,7 +54,7 @@ void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties p
   }
 }
 
-void heartbeatTimer(TimerHandle_t handle)
+void MQTT::heartbeatTimer(TimerHandle_t handle)
 {
   mqttClient.publish("esp32Mesh/heartbeat", 2, false, "");
 }

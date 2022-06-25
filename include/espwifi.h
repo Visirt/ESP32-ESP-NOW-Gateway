@@ -6,4 +6,7 @@
 
 #define WIFI_NAME "ESP32_NET"
 
-void setupWiFi();
+namespace WIFI
+{
+    void setupWiFi();
+}

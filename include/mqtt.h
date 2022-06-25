@@ -6,9 +6,12 @@
 
 #define MQTT_NAME "esp32Client"
 
-extern AsyncMqttClient mqttClient;
+namespace MQTT
+{
+    extern AsyncMqttClient mqttClient;
 
-void setupMqtt();
-void onMqttConnect(bool sessionPresent);
-void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
-void heartbeatTimer(TimerHandle_t handle);
+    void setupMqtt();
+    void onMqttConnect(bool sessionPresent);
+    void mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
+    void heartbeatTimer(TimerHandle_t handle);
+}

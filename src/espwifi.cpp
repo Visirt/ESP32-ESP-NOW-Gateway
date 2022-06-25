@@ -1,6 +1,6 @@
 #include <espwifi.h>
 
-void setupWiFi()
+void WIFI::setupWiFi()
 {
   WiFi.mode(WIFI_STA);
   WiFi.setHostname(WIFI_NAME);
