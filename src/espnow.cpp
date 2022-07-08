@@ -21,7 +21,7 @@ void ESPNOW::setupEspNow()
 }
 
 void ESPNOW::onRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
-  String data = String((char*)incomingData);
+  String data = String((char*)incomingData).substring(0, len);
   int semiColonLocation = data.indexOf(';');
   int numItems = data.substring(0, semiColonLocation).toInt();
   String topic = data.substring(semiColonLocation + 1, numItems + semiColonLocation + 1);
