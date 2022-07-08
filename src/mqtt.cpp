@@ -1,4 +1,6 @@
 #include <mqtt.h>
+#include <constants_mqtt.h>
+#include <WiFi.h>
 
 AsyncMqttClient MQTT::mqttClient;
 

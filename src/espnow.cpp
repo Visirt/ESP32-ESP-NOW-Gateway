@@ -1,4 +1,5 @@
 #include <espnow.h>
+#include <mqtt.h>
 
 void ESPNOW::setupEspNow()
 {
@@ -20,7 +21,7 @@ void ESPNOW::setupEspNow()
   esp_now_register_recv_cb(onRecv);
 }
 
-void ESPNOW::onRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
+void ESPNOW::onRecv(const uint8_t* mac_addr, const uint8_t* incomingData, int len) {
   String data = String((char*)incomingData).substring(0, len);
   int semiColonLocation = data.indexOf(';');
   int numItems = data.substring(0, semiColonLocation).toInt();
@@ -40,12 +41,12 @@ void ESPNOW::onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   }
 }
 
-String ESPNOW::macAddrString(const uint8_t * mac_addr)
+String ESPNOW::macAddrString(const uint8_t * const mac_addr)
 {
   return String(mac_addr[0], HEX) + ":" + String(mac_addr[1], HEX) + ":" + String(mac_addr[2], HEX) + ":" + String(mac_addr[3], HEX) + ":" + String(mac_addr[4], HEX) + ":" + String(mac_addr[5], HEX);
 }
 
-esp_err_t ESPNOW::addSlave(uint8_t* address){
+esp_err_t ESPNOW::addSlave(const uint8_t* const address){
   esp_now_peer_info_t slaveInfo;
   memcpy(slaveInfo.peer_addr, address, 6);
   slaveInfo.channel = 0;  
@@ -53,6 +54,7 @@ esp_err_t ESPNOW::addSlave(uint8_t* address){
   
   return esp_now_add_peer(&slaveInfo);
 }
+
 
 esp_err_t ESPNOW::sendData(String message, String topic, uint8_t* dest){
   String sendingData = String(topic.length()) + ";" + topic + message;

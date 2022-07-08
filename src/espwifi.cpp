@@ -1,4 +1,7 @@
 #include <espwifi.h>
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include <constants_wifi.h>
 
 void WIFI::setupWiFi()
 {
