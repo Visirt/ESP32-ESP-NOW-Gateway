@@ -1,6 +1,7 @@
 #include <mqtt.h>
 #include <constants_mqtt.h>
 #include <WiFi.h>
+#include <espnow.h>
 
 AsyncMqttClient MQTT::mqttClient;
 
@@ -52,7 +53,17 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
   }
   else
   {
-
+    String relay = targetStr.substring(0,13);
+    String dest = targetStr.substring(14,27);
+    if(relay.length() != 13)
+      return;
+    if (dest.length() != 13)
+      relay = dest;
+    uint8_t* destMac = ESPNOW::macAddrString(dest);
+    uint8_t* relayMac = ESPNOW::macAddrString(relay);
+    ESPNOW::sendData(msg, destMac, relayMac);
+    free(destMac);
+    free(relayMac);
   }
 }
 

@@ -1,5 +1,6 @@
 #include <espnow.h>
 #include <mqtt.h>
+#include <ArduinoJson.h>
 
 void ESPNOW::setupEspNow()
 {
@@ -22,14 +23,25 @@ void ESPNOW::setupEspNow()
 }
 
 void ESPNOW::onRecv(const uint8_t* mac_addr, const uint8_t* incomingData, int len) {
+  if(!esp_now_is_peer_exist(mac_addr))
+    addSlave(mac_addr);
   String data = String((char*)incomingData).substring(0, len);
-  int semiColonLocation = data.indexOf(';');
-  int numItems = data.substring(0, semiColonLocation).toInt();
-  String topic = data.substring(semiColonLocation + 1, numItems + semiColonLocation + 1);
-  if(topic.isEmpty())
-    topic = "from";
-  String message = data.substring(semiColonLocation + numItems + 1);
-  MQTT::mqttClient.publish(("esp32Mesh/" + topic + "/" + macAddrString(mac_addr)).c_str(), 2, false, message.c_str());
+  DynamicJsonDocument  doc(1024);
+  ArduinoJson::deserializeJson(doc, data);
+  JsonObject obj = doc.as<JsonObject>();
+
+  String from = obj["from"];
+  String relay = obj["relay"];
+  String message = obj["message"];
+
+  if(from.isEmpty())
+    from = macAddrString(mac_addr);
+  String sendTopic = "esp32Mesh/from/";
+  if(from != relay && !relay.isEmpty())
+    sendTopic += relay + "/";
+  sendTopic += from;
+  if(!message.isEmpty())
+    MQTT::mqttClient.publish(sendTopic.c_str(), 2, false, message.c_str());
 }
 
 void ESPNOW::onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -46,6 +58,18 @@ String ESPNOW::macAddrString(const uint8_t * const mac_addr)
   return String(mac_addr[0], HEX) + ":" + String(mac_addr[1], HEX) + ":" + String(mac_addr[2], HEX) + ":" + String(mac_addr[3], HEX) + ":" + String(mac_addr[4], HEX) + ":" + String(mac_addr[5], HEX);
 }
 
+uint8_t* ESPNOW::macAddrString(const String mac_addr)
+{
+  if(mac_addr.length() != 13)
+    return nullptr;
+  uint8_t* macaddr =  (uint8_t*)malloc(6);
+  for(int i = 0 ; i < 6 ; i++)
+  {
+    macaddr[i] = (uint8_t)std::strtoul(mac_addr.substring(4 * i, 4 * i + 3).c_str(), nullptr, 16);
+  }
+  return macaddr;
+}
+
 esp_err_t ESPNOW::addSlave(const uint8_t* const address){
   esp_now_peer_info_t slaveInfo;
   memcpy(slaveInfo.peer_addr, address, 6);
@@ -56,8 +80,12 @@ esp_err_t ESPNOW::addSlave(const uint8_t* const address){
 }
 
 
-esp_err_t ESPNOW::sendData(String message, String topic, uint8_t* dest){
-  String sendingData = String(topic.length()) + ";" + topic + message;
-  Serial.println("Sending Data:" + sendingData);
-  return esp_now_send(dest, (uint8_t*)sendingData.c_str(), sendingData.length());
+esp_err_t ESPNOW::sendData(String message, const uint8_t* const dest, const uint8_t* const relay){
+  if(!esp_now_is_peer_exist(relay))
+    addSlave(relay);
+  String sendingData = "{\"to\":\"" + macAddrString(dest) + "\",\"relay\":\"" + macAddrString(relay) + "\",\"message\":\"" + message + "\"}";
+  #ifdef DEBUG
+    Serial.println("Sending Data:" + sendingData);
+  #endif
+  return esp_now_send(relay, (uint8_t*)sendingData.c_str(), sendingData.length());
 }
