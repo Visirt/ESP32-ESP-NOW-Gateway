@@ -75,7 +75,7 @@ uint8_t* ESPNOW::macAddrString(const String mac_addr)
 }
 
 esp_err_t ESPNOW::addSlave(const uint8_t* const address){
-  esp_now_peer_info_t slaveInfo;
+  esp_now_peer_info_t slaveInfo = {};
   memcpy(slaveInfo.peer_addr, address, 6);
   slaveInfo.channel = 0;  
   slaveInfo.encrypt = false;
