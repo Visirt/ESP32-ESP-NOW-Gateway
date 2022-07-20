@@ -27,21 +27,25 @@ void ESPNOW::onRecv(const uint8_t* mac_addr, const uint8_t* incomingData, int le
     addSlave(mac_addr);
   String data = String((char*)incomingData).substring(0, len);
   DynamicJsonDocument  doc(1024);
-  ArduinoJson::deserializeJson(doc, data);
-  JsonObject obj = doc.as<JsonObject>();
+  if(ArduinoJson::deserializeJson(doc, data) == ArduinoJson6194_F1::DeserializationError::Ok)
+  {
+    JsonObject obj = doc.as<JsonObject>();
 
-  String from = obj["from"];
-  String relay = obj["relay"];
-  String message = obj["message"];
+    String from = obj["from"];
+    String relay = obj["relay"];
+    String message = obj["message"];
 
-  if(from.isEmpty())
-    from = macAddrString(mac_addr);
-  String sendTopic = "esp32Mesh/from/";
-  if(from != relay && !relay.isEmpty())
-    sendTopic += relay + "/";
-  sendTopic += from;
-  if(!message.isEmpty())
-    MQTT::mqttClient.publish(sendTopic.c_str(), 2, false, message.c_str());
+    if(message != nullptr && !relay.isEmpty() && !from.isEmpty())
+    {
+      String sendTopic = "esp32Mesh/from/";
+      if(from != relay)
+        sendTopic += relay + "/";
+      sendTopic += from;
+      MQTT::mqttClient.publish(sendTopic.c_str(), 2, false, message.c_str());
+      return;
+    }
+  }
+  MQTT::mqttClient.publish(("esp32Mesh/invalid/" + macAddrString(mac_addr)).c_str(), 2, false, "");
 }
 
 void ESPNOW::onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -62,7 +66,7 @@ uint8_t* ESPNOW::macAddrString(const String mac_addr)
 {
   if(mac_addr.length() != 13)
     return nullptr;
-  uint8_t* macaddr =  (uint8_t*)malloc(6);
+  uint8_t* macaddr =  new uint8_t[6];
   for(int i = 0 ; i < 6 ; i++)
   {
     macaddr[i] = (uint8_t)std::strtoul(mac_addr.substring(4 * i, 4 * i + 3).c_str(), nullptr, 16);

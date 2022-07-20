@@ -62,8 +62,8 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
     uint8_t* destMac = ESPNOW::macAddrString(dest);
     uint8_t* relayMac = ESPNOW::macAddrString(relay);
     ESPNOW::sendData(msg, destMac, relayMac);
-    free(destMac);
-    free(relayMac);
+    delete[] destMac;
+    delete[] relayMac;
   }
 }
 
