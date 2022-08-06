@@ -50,6 +50,8 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
       mqttClient.publish("esp32Mesh/MACAddress", 2, false, WiFi.macAddress().c_str());
     else if(msg == "getIP")
       mqttClient.publish("esp32Mesh/IPAddress", 2, false, WiFi.localIP().toString().c_str());
+    else if(msg == "RESTART")
+      ESP.restart();
   }
   else
   {
