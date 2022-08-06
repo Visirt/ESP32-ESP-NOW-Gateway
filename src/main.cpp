@@ -4,6 +4,7 @@
 #include <espnow.h>
 #include <mqtt.h>
 #include <EspNowFloodingMesh.h>
+#include <ArduinoOTA.h>
 
 TickType_t taskWaitTime;
 
@@ -16,6 +17,11 @@ void setup() {
   WIFI::setupWiFi();
   MQTT::setupMqtt();
 
+  ArduinoOTA.onStart([]() {
+    esp_task_wdt_delete(NULL);
+  });
+  ArduinoOTA.begin();
+
   esp_task_wdt_init(2, true);
   esp_task_wdt_add(NULL);
   taskWaitTime = xTaskGetTickCount();
@@ -23,4 +29,5 @@ void setup() {
 void loop() {
   esp_task_wdt_reset();
   espNowFloodingMesh_loop();
+  ArduinoOTA.handle();
 }
