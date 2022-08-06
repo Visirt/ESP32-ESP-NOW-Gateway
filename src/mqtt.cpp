@@ -43,8 +43,8 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
   String msg = String(cleanPayload);
   free(cleanPayload);
 
-  String targetStr = String(topic).substring(13);
-  if (targetStr == "gateway")
+  String targetStr = String(topic).substring(13).substring(0, 8);
+  if (targetStr == "root")
   {
     if(msg == "getMAC")
       mqttClient.publish("esp32Mesh/MACAddress", 2, false, WiFi.macAddress().c_str());
@@ -53,17 +53,7 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
   }
   else
   {
-    String relay = targetStr.substring(0,13);
-    String dest = targetStr.substring(14,27);
-    if(relay.length() != 13)
-      return;
-    if (dest.length() != 13)
-      relay = dest;
-    uint8_t* destMac = ESPNOW::macAddrString(dest);
-    uint8_t* relayMac = ESPNOW::macAddrString(relay);
-    ESPNOW::sendData(msg, destMac, relayMac);
-    delete[] destMac;
-    delete[] relayMac;
+    ESPNOW::sendData(msg, targetStr);
   }
 }
 

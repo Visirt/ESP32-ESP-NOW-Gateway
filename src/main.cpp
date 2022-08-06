@@ -3,6 +3,7 @@
 #include <espwifi.h>
 #include <espnow.h>
 #include <mqtt.h>
+#include <EspNowFloodingMesh.h>
 
 TickType_t taskWaitTime;
 
@@ -11,9 +12,9 @@ void setup() {
     Serial.begin(115200);
   #endif
 
+  ESPNOW::setupEspNow();
   WIFI::setupWiFi();
   MQTT::setupMqtt();
-  ESPNOW::setupEspNow();
 
   esp_task_wdt_init(2, true);
   esp_task_wdt_add(NULL);
@@ -21,5 +22,5 @@ void setup() {
 }
 void loop() {
   esp_task_wdt_reset();
-  vTaskDelayUntil(&taskWaitTime, pdMS_TO_TICKS(200));
+  espNowFloodingMesh_loop();
 }
