@@ -10,6 +10,7 @@ void MQTT::setupMqtt()
     mqttClient.setClientId(MQTT_NAME);
     mqttClient.setCredentials(MQTT_USER, MQTT_PASSWD);
     mqttClient.onConnect(onMqttConnect);
+    mqttClient.onDisconnect(onMqttDisconnect);
     mqttClient.setKeepAlive(30);
     mqttClient.setWill("esp32Mesh/LWT", 2, false, "ESP32 Connection Dropped");
     mqttClient.onMessage(mqttCallback);
@@ -33,6 +34,11 @@ void MQTT::onMqttConnect(bool sessionPresent)
   mqttClient.subscribe("esp32Mesh/to/#", 2);
   mqttClient.publish("esp32Mesh/status", 2, false, "Connected!");
   heartbeatTimer(NULL);
+}
+
+void MQTT::onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
+{
+  ESP.restart();
 }
 
 void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
