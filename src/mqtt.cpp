@@ -68,4 +68,6 @@ void MQTT::mqttCallback(char* topic, char* payload, AsyncMqttClientMessageProper
 void MQTT::heartbeatTimer(TimerHandle_t handle)
 {
   mqttClient.publish("esp32Mesh/heartbeat", 2, false, "");
+  if(!mqttClient.connected())
+    ESP.restart();
 }
